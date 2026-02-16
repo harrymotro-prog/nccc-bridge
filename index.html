@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#4a6741">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>Bridge — NCCC</title>
+<style>
+:root {
+  --bg:#f5f2ed;--bg-card:#ffffff;--bg-dark:#1a1a2e;--text:#2d2d2d;--text-light:#6b6b6b;
+  --green:#4a6741;--green-light:#e8f0e5;--green-dark:#3a5334;--amber:#c4944a;--amber-light:#fdf3e4;
+  --red:#b85450;--red-light:#fce8e7;--blue:#4a6a8a;--blue-light:#e5eef5;--border:#ddd8d0;
+  --shadow:0 2px 8px rgba(0,0,0,0.06);--radius:12px;--radius-sm:8px;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;--transition:0.2s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.screen{display:none;flex:1;padding:20px;padding-bottom:90px;animation:fadeIn .2s ease}
+.screen.active{display:flex;flex-direction:column}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10}
+.header h1{font-size:20px;font-weight:600;color:var(--green-dark);letter-spacing:-.3px}
+.header .subtitle{font-size:12px;color:var(--text-light);font-weight:400}
+.user-badge{font-size:12px;background:var(--green-light);color:var(--green-dark);padding:4px 10px;border-radius:20px;cursor:pointer}
+
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:#fff;border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 0;cursor:pointer;border:none;background:none;color:var(--text-light);font-size:10px;font-family:var(--font);transition:color var(--transition);-webkit-tap-highlight-color:transparent}
+.nav-item.active{color:var(--green)}.nav-icon{width:24px;height:24px;margin-bottom:3px;display:flex;align-items:center;justify-content:center;font-size:18px}
+
+.card{background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-title{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.card-subtitle{font-size:13px;color:var(--text-light);margin-bottom:16px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:var(--radius-sm);border:none;font-size:15px;font-weight:500;font-family:var(--font);cursor:pointer;transition:all var(--transition);-webkit-tap-highlight-color:transparent;width:100%;gap:8px}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:active{background:var(--green-dark)}
+.btn-secondary{background:var(--green-light);color:var(--green-dark)}
+.btn-pause{background:var(--amber);color:#fff;font-size:18px;padding:20px;border-radius:16px}.btn-pause:active{background:#b0843f}
+.btn-outline{background:transparent;color:var(--green);border:1.5px solid var(--green)}
+.btn-small{padding:8px 16px;font-size:13px;width:auto}
+
+input,textarea,select{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:var(--font);color:var(--text);background:#fff;transition:border-color var(--transition)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--green)}
+textarea{resize:vertical;min-height:80px}
+label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margin-bottom:6px}
+.form-group{margin-bottom:16px}
+
+.scale-row{margin-bottom:24px}
+.scale-label{font-size:14px;font-weight:500;margin-bottom:8px;display:flex;justify-content:space-between}
+.scale-label span{font-size:12px;color:var(--text-light);font-weight:400}
+.scale-options{display:flex;gap:8px}
+.scale-btn{flex:1;aspect-ratio:1;max-width:60px;border:2px solid var(--border);border-radius:var(--radius-sm);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all var(--transition);-webkit-tap-highlight-color:transparent}
+.scale-btn.selected{border-color:var(--green);background:var(--green-light);transform:scale(1.08)}
+.scale-btn:active{transform:scale(.95)}
+
+.body-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px}
+.body-btn{padding:10px 8px;border:2px solid var(--border);border-radius:var(--radius-sm);background:#fff;cursor:pointer;font-size:13px;text-align:center;transition:all var(--transition);font-family:var(--font)}
+.body-btn.selected{border-color:var(--green);background:var(--green-light)}
+
+.weather-row{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.weather-btn{width:64px;height:64px;border:2px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:28px;transition:all var(--transition)}
+.weather-btn span{font-size:10px;color:var(--text-light)}.weather-btn.selected{border-color:var(--green);background:var(--green-light)}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0}.toggle-row label{margin-bottom:0;font-size:14px}
+.toggle{width:48px;height:28px;background:var(--border);border-radius:14px;position:relative;cursor:pointer;transition:background var(--transition)}
+.toggle.on{background:var(--green)}.toggle::after{content:'';width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:transform var(--transition);box-shadow:0 1px 3px rgba(0,0,0,.15)}.toggle.on::after{transform:translateX(20px)}
+
+.partner-card{background:var(--blue-light);border:1px solid #c5d5e5;border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.partner-card .label{font-size:12px;color:var(--blue);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.partner-mini-stat{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:14px}.partner-mini-stat .icon{font-size:18px}
+
+.pause-hero{text-align:center;padding:40px 20px}.pause-hero .big-icon{font-size:64px;margin-bottom:16px}
+.pause-hero h2{font-size:22px;margin-bottom:8px;color:var(--text)}.pause-hero p{font-size:14px;color:var(--text-light);max-width:300px;margin:0 auto 24px}
+.duration-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.duration-btn{padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);background:#fff;cursor:pointer;text-align:center;font-size:14px;font-family:var(--font);font-weight:500;transition:all var(--transition)}
+.duration-btn.selected{border-color:var(--amber);background:var(--amber-light)}
+
+.grounding-card{background:var(--green-light);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:16px}
+.grounding-card h3{font-size:18px;margin-bottom:12px;color:var(--green-dark)}
+.grounding-step{font-size:24px;font-weight:300;color:var(--green-dark);margin:20px 0;min-height:40px}
+.breathing-circle{width:120px;height:120px;border-radius:50%;background:var(--green);opacity:.3;margin:20px auto;animation:breathe 8s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.6);opacity:.3}50%{transform:scale(1);opacity:.6}}
+
+.topic-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.topic-card.received{border-left:3px solid var(--blue)}.topic-card.sent{border-left:3px solid var(--green)}
+.topic-status{display:inline-block;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:500}
+.status-pending{background:var(--amber-light);color:var(--amber)}.status-ready{background:var(--green-light);color:var(--green)}.status-session{background:var(--blue-light);color:var(--blue)}
+
+.hw-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color var(--transition)}.hw-card:active{border-color:var(--green)}
+.hw-card .time-tag{display:inline-block;font-size:11px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:10px;margin-bottom:8px}
+.hw-card .category-tag{display:inline-block;font-size:11px;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:10px;margin-bottom:8px;margin-left:4px}
+
+.lib-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color var(--transition)}.lib-card:active{border-color:var(--green)}
+.lib-card .cat{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:600;margin-bottom:6px}
+.lib-card h3{font-size:15px;font-weight:600;margin-bottom:6px}.lib-card p{font-size:13px;color:var(--text-light)}
+
+.article-view{display:none}.article-view.active{display:block}
+.article-back{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:var(--green);cursor:pointer;margin-bottom:16px;border:none;background:none;font-family:var(--font)}
+.article-content{font-size:15px;line-height:1.7;color:var(--text)}.article-content p{margin-bottom:16px}
+.try-this{background:var(--green-light);border-radius:var(--radius);padding:16px;margin-top:20px}
+.try-this h4{font-size:14px;color:var(--green-dark);margin-bottom:8px}.try-this p{font-size:14px;color:var(--green-dark)}
+
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center}
+.login-screen h1{font-size:28px;font-weight:700;color:var(--green-dark);margin-bottom:4px}
+.login-screen .tagline{font-size:14px;color:var(--text-light);margin-bottom:8px}
+.login-screen .org{font-size:12px;color:var(--text-light);margin-bottom:40px}
+.login-form{width:100%;max-width:320px}.login-form .form-group{text-align:left}
+
+.neurotype-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.neurotype-btn{padding:16px 12px;border:2px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;text-align:center;font-family:var(--font);transition:all var(--transition)}
+.neurotype-btn .emoji{font-size:28px;margin-bottom:6px}.neurotype-btn .name{font-size:14px;font-weight:500}.neurotype-btn .desc{font-size:11px;color:var(--text-light);margin-top:2px}
+.neurotype-btn.selected{border-color:var(--green);background:var(--green-light)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-light)}.empty-state .icon{font-size:48px;margin-bottom:12px}.empty-state h3{font-size:16px;color:var(--text);margin-bottom:6px}.empty-state p{font-size:13px}
+.section-header{font-size:13px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin:24px 0 12px}
+.mt-16{margin-top:16px}.mb-16{margin-bottom:16px}.mb-8{margin-bottom:8px}.text-center{text-align:center}.text-light{color:var(--text-light)}.text-sm{font-size:13px}.flex-row{display:flex;gap:8px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg-dark);color:#fff;padding:12px 24px;border-radius:var(--radius-sm);font-size:14px;z-index:200;opacity:0;transition:opacity .3s;max-width:360px;text-align:center}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- LOGIN -->
+<div class="screen active" id="screen-login">
+<div class="login-screen">
+  <h1>Bridge</h1>
+  <div class="tagline">Between-session support</div>
+  <div class="org">Neurodiverse Couples Counseling Center</div>
+  <div class="login-form">
+    <div class="form-group"><label>Your Email</label><input type="email" id="login-email" placeholder="you@email.com"></div>
+    <div class="form-group"><label>Your Name</label><input type="text" id="login-name" placeholder="First name"></div>
+    <button class="btn btn-primary mt-16" onclick="handleLogin()">Continue</button>
+    <p class="text-sm text-light mt-16">Your therapist should have given you a link. Enter the same email you use with NCCC.</p>
+  </div>
+</div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="screen" id="screen-onboarding">
+<h2 style="font-size:22px;margin-bottom:8px;">About You</h2>
+<p class="text-sm text-light mb-16">This helps us tailor the app to how your brain works. You can change this anytime.</p>
+<div class="section-header">I identify as</div>
+<div class="neurotype-grid" id="neurotype-grid">
+  <div class="neurotype-btn" data-type="autistic" onclick="selectNeurotype(this)"><div class="emoji">🧩</div><div class="name">Autistic</div></div>
+  <div class="neurotype-btn" data-type="adhd" onclick="selectNeurotype(this)"><div class="emoji">⚡</div><div class="name">ADHD</div></div>
+  <div class="neurotype-btn" data-type="audhd" onclick="selectNeurotype(this)"><div class="emoji">🌀</div><div class="name">AuDHD</div><div class="desc">Both</div></div>
+  <div class="neurotype-btn" data-type="neurotypical" onclick="selectNeurotype(this)"><div class="emoji">🌿</div><div class="name">Neurotypical</div></div>
+  <div class="neurotype-btn" data-type="hsp" onclick="selectNeurotype(this)"><div class="emoji">🌸</div><div class="name">HSP</div><div class="desc">Highly Sensitive</div></div>
+  <div class="neurotype-btn" data-type="unsure" onclick="selectNeurotype(this)"><div class="emoji">❓</div><div class="name">Not Sure</div><div class="desc">Still figuring it out</div></div>
+</div>
+<div class="form-group"><label>Partner's Email (so we can link you)</label><input type="email" id="partner-email" placeholder="partner@email.com"></div>
+<button class="btn btn-primary mt-16" onclick="completeOnboarding()">Start Using Bridge</button>
+</div>
+
+<!-- HEADER -->
+<div class="header" id="main-header" style="display:none">
+  <div><h1>Bridge</h1><div class="subtitle" id="header-greeting"></div></div>
+  <div class="user-badge" id="user-badge" onclick="showSettings()"></div>
+</div>
+
+<!-- CHECK-IN -->
+<div class="screen" id="screen-checkin">
+<div class="partner-card" id="partner-checkin" style="display:none"><div class="label" id="partner-checkin-label">Partner's Check-In</div><div id="partner-checkin-content"></div></div>
+<div class="card">
+  <div class="card-title">How Are You Right Now?</div>
+  <div class="card-subtitle">No right or wrong answers. Just notice.</div>
+  <div class="scale-row"><div class="scale-label">Energy<span>How charged is your battery?</span></div>
+    <div class="scale-options"><button class="scale-btn" onclick="selectScale('energy',1,this)">🪫</button><button class="scale-btn" onclick="selectScale('energy',2,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',3,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',4,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',5,this)">⚡</button></div></div>
+  <div class="scale-row"><div class="scale-label">Sensory Load<span>Calm → Overloaded</span></div>
+    <div class="scale-options"><button class="scale-btn" onclick="selectScale('sensory',1,this)">😌</button><button class="scale-btn" onclick="selectScale('sensory',2,this)">🙂</button><button class="scale-btn" onclick="selectScale('sensory',3,this)">😐</button><button class="scale-btn" onclick="selectScale('sensory',4,this)">😣</button><button class="scale-btn" onclick="selectScale('sensory',5,this)">🤯</button></div></div>
+  <div class="scale-row"><div class="scale-label">Social Bandwidth<span>Want connection ↔ Need space</span></div>
+    <div class="scale-options"><button class="scale-btn" onclick="selectScale('social',1,this)">🤗</button><button class="scale-btn" onclick="selectScale('social',2,this)">👋</button><button class="scale-btn" onclick="selectScale('social',3,this)">😐</button><button class="scale-btn" onclick="selectScale('social',4,this)">🚪</button><button class="scale-btn" onclick="selectScale('social',5,this)">🏔️</button></div></div>
+  <div class="scale-row"><div class="scale-label">Body State<span>Pick any that apply</span></div>
+    <div class="body-grid"><button class="body-btn" onclick="toggleBody(this)">Tense</button><button class="body-btn" onclick="toggleBody(this)">Restless</button><button class="body-btn" onclick="toggleBody(this)">Calm</button><button class="body-btn" onclick="toggleBody(this)">Numb</button><button class="body-btn" onclick="toggleBody(this)">Jittery</button><button class="body-btn" onclick="toggleBody(this)">Achy</button><button class="body-btn" onclick="toggleBody(this)">Heavy</button><button class="body-btn" onclick="toggleBody(this)">Light</button><button class="body-btn" onclick="toggleBody(this)">Buzzing</button></div></div>
+  <div class="scale-row"><div class="scale-label">Internal Weather<span>Overall atmosphere</span></div>
+    <div class="weather-row"><button class="weather-btn" onclick="selectWeather('sunny',this)">☀️<span>Sunny</span></button><button class="weather-btn" onclick="selectWeather('partly',this)">⛅<span>Partly</span></button><button class="weather-btn" onclick="selectWeather('cloudy',this)">☁️<span>Cloudy</span></button><button class="weather-btn" onclick="selectWeather('foggy',this)">🌫️<span>Foggy</span></button><button class="weather-btn" onclick="selectWeather('stormy',this)">⛈️<span>Stormy</span></button></div></div>
+  <div class="form-group"><label>Anything else? (optional)</label><textarea id="checkin-note" placeholder="Only if you want to..." rows="2"></textarea></div>
+  <div class="toggle-row"><label>Share this check-in with your partner</label><div class="toggle on" id="share-toggle" onclick="toggleShare()"></div></div>
+  <button class="btn btn-primary mt-16" onclick="submitCheckIn()">Save Check-In</button>
+</div>
+</div>
+
+<!-- PAUSE -->
+<div class="screen" id="screen-pause">
+<div id="pause-default">
+  <div class="pause-hero"><div class="big-icon">⏸️</div><h2>The Pause Button</h2><p>When things are getting heated or overwhelming, either partner can request a pause. This is protection for the relationship — not rejection.</p></div>
+  <button class="btn btn-pause" onclick="showPauseFlow()">⏸️ &nbsp; I Need a Pause</button>
+  <div class="card mt-16"><div class="card-title">How It Works</div><p class="text-sm text-light">1. You tap the button<br>2. Your partner is notified (gently)<br>3. You both get a short grounding exercise<br>4. After your chosen time, you reconnect with a structured restart</p></div>
+</div>
+<div id="pause-flow" style="display:none">
+  <div class="pause-hero"><div class="big-icon">🫁</div><h2>Take a breath.</h2><p>How much time do you need?</p></div>
+  <div class="duration-options"><button class="duration-btn" onclick="selectDuration(15,this)">15 minutes</button><button class="duration-btn" onclick="selectDuration(30,this)">30 minutes</button><button class="duration-btn" onclick="selectDuration(60,this)">1 hour</button><button class="duration-btn" onclick="selectDuration(0,this)">Tomorrow</button></div>
+  <button class="btn btn-primary" onclick="activatePause()">Send Pause</button>
+  <button class="btn btn-outline mt-16" onclick="cancelPauseFlow()">Never mind</button>
+</div>
+<div id="pause-active" style="display:none">
+  <div class="grounding-card"><h3>Breathing Exercise</h3><p class="text-sm text-light">Follow the circle. In... and out.</p><div class="breathing-circle"></div><div class="grounding-step" id="breathing-text">Breathe in...</div></div>
+  <div class="card"><div class="card-title">5-4-3-2-1 Grounding</div><p class="text-sm text-light mb-8">If breathing isn't enough, try noticing:</p><p class="text-sm"><strong>5</strong> things you can see</p><p class="text-sm"><strong>4</strong> things you can touch</p><p class="text-sm"><strong>3</strong> things you can hear</p><p class="text-sm"><strong>2</strong> things you can smell</p><p class="text-sm"><strong>1</strong> thing you can taste</p></div>
+  <div class="card"><div class="card-title">Pause is active</div><p class="text-sm text-light" id="pause-timer-text">Your partner has been notified. Take your time.</p><button class="btn btn-secondary mt-16" onclick="readyToReconnect()">I'm ready to reconnect</button></div>
+</div>
+</div>
+
+<!-- TOPICS -->
+<div class="screen" id="screen-topics">
+<div class="card">
+  <div class="card-title">Send a Topic Preview</div>
+  <div class="card-subtitle">Give your partner a heads-up about something you'd like to discuss. No ambush conversations.</div>
+  <div class="form-group"><label>What do you want to talk about?</label><textarea id="topic-input" placeholder="e.g., I want to talk about how we're handling bedtime routines..." rows="3"></textarea></div>
+  <div class="form-group"><label>Any context? (optional)</label><textarea id="topic-note" placeholder="This isn't urgent, I just want us to think about it..." rows="2"></textarea></div>
+  <button class="btn btn-primary" onclick="sendTopic()">Send Preview to Partner</button>
+</div>
+<div class="section-header">Recent Topics</div>
+<div id="topics-list"><div class="empty-state"><div class="icon">💬</div><h3>No topics yet</h3><p>Send a topic preview when you want to discuss something with your partner.</p></div></div>
+</div>
+
+<!-- HOMEWORK -->
+<div class="screen" id="screen-homework">
+<div class="section-header">Assigned by Your Therapist</div>
+<div id="homework-list"><div class="empty-state"><div class="icon">📋</div><h3>No homework yet</h3><p>Your therapist will assign exercises after your sessions.</p></div></div>
+<div class="section-header">Exercise Library</div>
+<div id="exercise-list"></div>
+</div>
+
+<!-- LIBRARY -->
+<div class="screen" id="screen-library">
+<div id="library-list-view"><div class="section-header">Learn About Your Relationship</div><div id="library-list"></div></div>
+<div class="article-view" id="article-view"><button class="article-back" onclick="closeArticle()">← Back to Library</button><div id="article-content"></div></div>
+</div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav" id="main-nav" style="display:none">
+  <button class="nav-item active" onclick="switchTab('checkin',this)"><div class="nav-icon">🫀</div>Check-In</button>
+  <button class="nav-item" onclick="switchTab('pause',this)"><div class="nav-icon">⏸️</div>Pause</button>
+  <button class="nav-item" onclick="switchTab('topics',this)"><div class="nav-icon">💬</div>Topics</button>
+  <button class="nav-item" onclick="switchTab('homework',this)"><div class="nav-icon">📋</div>Practice</button>
+  <button class="nav-item" onclick="switchTab('library',this)"><div class="nav-icon">📖</div>Learn</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
