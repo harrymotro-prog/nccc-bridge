@@ -3,7 +3,7 @@
 // ============================================================
 
 // *** PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ***
-const API_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxdMSoZM2urnvwNSdyrOsi_FTbAGVyXZB9cuqzNJSo7ZsGyCER453zQdJOXjYOZKW4z/exec';
 
 let currentUser = null;
 let checkinData = { energy: 0, sensory: 0, social: 0, bodyStates: [], weather: '', shared: true };
