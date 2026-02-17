@@ -1,5 +1,5 @@
 // NCCC Bridge App v2 — app.js
-const API_URL = 'https://script.google.com/macros/s/AKfycbyyOMo_66R1RCqo2ib_-mXD7LpPkd4QOJ0kLbofTKOAOaX388FAH9V8zSdguKAnTpu6/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxi_q-SBZhu4gpyMB-fmIzdF2kQ6B0eNVZPd6UNyT-uzFic_yT2u_FnMg84ZCpqHAnr/exec';
 let currentUser = null;
 let checkinData = {energy:0,sensory:0,social:0,bodyStates:[],weather:'',shared:true};
 let selectedDuration = 15;
