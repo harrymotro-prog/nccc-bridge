@@ -239,6 +239,16 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
   <div class="card-subtitle">Select a couple to assign an exercise.</div>
   <div id="therapist-couples-list"><div class="empty-state"><div class="icon">👥</div><p>Loading your couples...</p></div></div>
 </div>
+<div class="card">
+  <div class="card-title">Add a New Couple</div>
+  <div class="card-subtitle">Enter both partners' names and emails. They'll each get a welcome email with a link to log in.</div>
+  <div class="form-group"><label>Partner A — Name</label><input type="text" id="new-couple-nameA" placeholder="First name"></div>
+  <div class="form-group"><label>Partner A — Email</label><input type="email" id="new-couple-emailA" placeholder="partner.a@email.com"></div>
+  <div class="form-group"><label>Partner B — Name</label><input type="text" id="new-couple-nameB" placeholder="First name"></div>
+  <div class="form-group"><label>Partner B — Email</label><input type="email" id="new-couple-emailB" placeholder="partner.b@email.com"></div>
+  <button class="btn btn-primary" onclick="createNewCouple()">Create Couple & Send Welcome Emails</button>
+  <div id="create-couple-result" class="mt-16"></div>
+</div>
 <div id="therapist-assign-panel" style="display:none;">
   <div class="card">
     <div class="card-title" id="assign-couple-name">Assign Exercise</div>

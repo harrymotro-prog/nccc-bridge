@@ -222,3 +222,24 @@ async function submitAssignment(){
     showToast('Something went wrong. Try again.');
   }
 }
+
+async function createNewCouple(){
+  const nameA=document.getElementById('new-couple-nameA').value.trim();
+  const emailA=document.getElementById('new-couple-emailA').value.trim();
+  const nameB=document.getElementById('new-couple-nameB').value.trim();
+  const emailB=document.getElementById('new-couple-emailB').value.trim();
+  if(!nameA||!emailA||!nameB||!emailB){showToast('Please fill in all four fields');return;}
+  const result=document.getElementById('create-couple-result');
+  result.innerHTML='<p class="text-sm text-light">Creating couple and sending emails...</p>';
+  const r=await api({action:'createCouple',nameA:nameA,emailA:emailA,nameB:nameB,emailB:emailB,therapistId:currentUser.userId});
+  if(r.success){
+    result.innerHTML='<p class="text-sm" style="color:var(--green);font-weight:500;">Done! '+nameA+' and '+nameB+' have been set up. Welcome emails sent. Couple code: <strong>'+r.coupleCode+'</strong></p>';
+    document.getElementById('new-couple-nameA').value='';
+    document.getElementById('new-couple-emailA').value='';
+    document.getElementById('new-couple-nameB').value='';
+    document.getElementById('new-couple-emailB').value='';
+    loadTherapistCouples();
+  } else {
+    result.innerHTML='<p class="text-sm" style="color:var(--red);">'+(r.error||'Something went wrong. Try again.')+'</p>';
+  }
+}
