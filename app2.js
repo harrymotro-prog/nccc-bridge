@@ -233,7 +233,13 @@ async function createNewCouple(){
   result.innerHTML='<p class="text-sm text-light">Creating couple and sending emails...</p>';
   const r=await api({action:'createCouple',nameA:nameA,emailA:emailA,nameB:nameB,emailB:emailB,therapistId:currentUser.userId});
   if(r.success){
-    result.innerHTML='<p class="text-sm" style="color:var(--green);font-weight:500;">Done! '+nameA+' and '+nameB+' have been set up. Welcome emails sent. Couple code: <strong>'+r.coupleCode+'</strong></p>';
+    var emailMsg='';
+    if(r.emailsSent){
+      var eA=r.emailsSent.partnerA,eB=r.emailsSent.partnerB;
+      if(eA===true&&eB===true){emailMsg=' Welcome emails sent.';}
+      else{emailMsg=' Email issue — '+nameA+': '+(eA===true?'sent':eA)+', '+nameB+': '+(eB===true?'sent':eB);}
+    }
+    result.innerHTML='<p class="text-sm" style="color:var(--green);font-weight:500;">Done! '+nameA+' and '+nameB+' have been set up.'+emailMsg+' Couple code: <strong>'+r.coupleCode+'</strong></p>';
     document.getElementById('new-couple-nameA').value='';
     document.getElementById('new-couple-emailA').value='';
     document.getElementById('new-couple-nameB').value='';
