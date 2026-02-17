@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridge — Therapist Setup</title>
+<style>
+:root {
+  --bg:#f5f2ed;--bg-card:#ffffff;--text:#2d2d2d;--text-light:#6b6b6b;
+  --green:#4a6741;--green-light:#e8f0e5;--green-dark:#3a5334;--red:#b85450;
+  --border:#ddd8d0;--shadow:0 2px 8px rgba(0,0,0,0.06);--radius:12px;--radius-sm:8px;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{max-width:420px;width:100%;text-align:center}
+h1{font-size:28px;font-weight:700;color:var(--green-dark);margin-bottom:4px}
+.tagline{font-size:14px;color:var(--text-light);margin-bottom:4px}
+.org{font-size:12px;color:var(--text-light);margin-bottom:32px}
+.card{background:var(--bg-card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--border);text-align:left;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.card-subtitle{font-size:13px;color:var(--text-light);margin-bottom:20px}
+label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margin-bottom:6px}
+input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:var(--font);color:var(--text);background:#fff;margin-bottom:16px}
+input:focus{outline:none;border-color:var(--green)}
+.btn{display:block;width:100%;padding:14px;border-radius:var(--radius-sm);border:none;font-size:15px;font-weight:500;font-family:var(--font);cursor:pointer;background:var(--green);color:#fff;margin-top:8px}
+.btn:active{background:var(--green-dark)}
+.btn-link{display:block;margin-top:16px;color:var(--green);font-size:14px;text-decoration:none;text-align:center}
+.result{margin-top:16px;font-size:14px;padding:12px;border-radius:var(--radius-sm)}
+.result.success{background:var(--green-light);color:var(--green-dark)}
+.result.error{background:#fce8e7;color:var(--red)}
+.note{font-size:12px;color:var(--text-light);margin-top:20px;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Bridge</h1>
+  <div class="tagline">Therapist Registration</div>
+  <div class="org">Neurodiverse Couples Counseling Center</div>
+
+  <div class="card">
+    <div class="card-title">Create Your Therapist Account</div>
+    <div class="card-subtitle">Once registered, you can log in at the main app to manage couples and assign exercises.</div>
+    <label>Your Name</label>
+    <input type="text" id="reg-name" placeholder="First and last name">
+    <label>Your Email</label>
+    <input type="email" id="reg-email" placeholder="you@practice.com">
+    <label>Access Code</label>
+    <input type="text" id="reg-code" placeholder="Enter the code from your administrator">
+    <button class="btn" onclick="registerTherapist()">Register as Therapist</button>
+    <div id="result"></div>
+  </div>
+
+  <a class="btn-link" href="index.html">Already registered? Log in at the main app &rarr;</a>
+  <p class="note">This page is for therapists only. Clients receive their login via email after their therapist sets them up.</p>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyyOMo_66R1RCqo2ib_-mXD7LpPkd4QOJ0kLbofTKOAOaX388FAH9V8zSdguKAnTpu6/exec';
+
+async function registerTherapist(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const code=document.getElementById('reg-code').value.trim();
+  const res=document.getElementById('result');
+
+  if(!name||!email||!code){res.className='result error';res.textContent='Please fill in all three fields.';return;}
+
+  res.className='result';res.textContent='Registering...';res.style.background='#f0f0f0';res.style.color='#666';
+
+  try{
+    const u=new URL(API_URL);
+    u.searchParams.append('action','registerTherapist');
+    u.searchParams.append('name',name);
+    u.searchParams.append('email',email);
+    u.searchParams.append('accessCode',code);
+    const r=await(await fetch(u.toString())).json();
+
+    if(r.error){
+      res.className='result error';res.textContent=r.error;
+    } else if(r.alreadyRegistered){
+      res.className='result success';res.innerHTML='You\'re already registered! <a href="index.html?email='+encodeURIComponent(email)+'&name='+encodeURIComponent(name)+'" style="color:var(--green-dark);font-weight:600;">Log in now &rarr;</a>';
+    } else {
+      res.className='result success';res.innerHTML='You\'re all set! <a href="index.html?email='+encodeURIComponent(email)+'&name='+encodeURIComponent(name)+'" style="color:var(--green-dark);font-weight:600;">Log in now &rarr;</a>';
+    }
+  }catch(e){
+    res.className='result error';res.textContent='Could not connect. Check your internet and try again.';
+  }
+}
+</script>
+</body>
+</html>
