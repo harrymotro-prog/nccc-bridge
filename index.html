@@ -134,7 +134,7 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
     <div class="form-group"><label>Your Email</label><input type="email" id="login-email" placeholder="you@email.com"></div>
     <div class="form-group"><label>Your Name</label><input type="text" id="login-name" placeholder="First name"></div>
     <button class="btn btn-primary mt-16" onclick="handleLogin()">Continue</button>
-    <p class="text-sm text-light mt-16">Your therapist should have given you a link. Enter the same email you use with NCCC.</p>
+    <p class="text-sm text-light mt-16">Your therapist sets you up. Enter the email they used when creating your account.</p>
   </div>
 </div>
 </div>
@@ -152,7 +152,6 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
   <div class="neurotype-btn" data-type="hsp" onclick="selectNeurotype(this)"><div class="emoji">🌸</div><div class="name">HSP</div><div class="desc">Highly Sensitive</div></div>
   <div class="neurotype-btn" data-type="unsure" onclick="selectNeurotype(this)"><div class="emoji">❓</div><div class="name">Not Sure</div><div class="desc">Still figuring it out</div></div>
 </div>
-<div class="form-group"><label>Partner's Email (so we can link you)</label><input type="email" id="partner-email" placeholder="partner@email.com"></div>
 <button class="btn btn-primary mt-16" onclick="completeOnboarding()">Start Using Bridge</button>
 </div>
 
@@ -244,5 +243,6 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
 
 <div class="toast" id="toast"></div>
 <script src="app.js"></script>
+<script src="app2.js"></script>
 </body>
 </html>
