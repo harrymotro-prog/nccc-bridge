@@ -167,8 +167,8 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
 <div class="card">
   <div class="card-title">How Are You Right Now?</div>
   <div class="card-subtitle">No right or wrong answers. Just notice.</div>
-  <div class="scale-row"><div class="scale-label">Energy<span>How charged is your battery?</span></div>
-    <div class="scale-options"><button class="scale-btn" onclick="selectScale('energy',1,this)">🪫</button><button class="scale-btn" onclick="selectScale('energy',2,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',3,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',4,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',5,this)">⚡</button></div></div>
+  <div class="scale-row"><div class="scale-label">Energy Level<span>Fully charged → Running on empty</span></div>
+    <div class="scale-options"><button class="scale-btn" onclick="selectScale('energy',5,this)">⚡</button><button class="scale-btn" onclick="selectScale('energy',4,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',3,this)">🔋</button><button class="scale-btn" onclick="selectScale('energy',2,this)">🪫</button><button class="scale-btn" onclick="selectScale('energy',1,this)">💤</button></div></div>
   <div class="scale-row"><div class="scale-label">Sensory Load<span>Calm → Overloaded</span></div>
     <div class="scale-options"><button class="scale-btn" onclick="selectScale('sensory',1,this)">😌</button><button class="scale-btn" onclick="selectScale('sensory',2,this)">🙂</button><button class="scale-btn" onclick="selectScale('sensory',3,this)">😐</button><button class="scale-btn" onclick="selectScale('sensory',4,this)">😣</button><button class="scale-btn" onclick="selectScale('sensory',5,this)">🤯</button></div></div>
   <div class="scale-row"><div class="scale-label">Social Bandwidth<span>Want connection ↔ Need space</span></div>
@@ -177,7 +177,7 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
     <div class="body-grid"><button class="body-btn" onclick="toggleBody(this)">Tense</button><button class="body-btn" onclick="toggleBody(this)">Restless</button><button class="body-btn" onclick="toggleBody(this)">Calm</button><button class="body-btn" onclick="toggleBody(this)">Numb</button><button class="body-btn" onclick="toggleBody(this)">Jittery</button><button class="body-btn" onclick="toggleBody(this)">Achy</button><button class="body-btn" onclick="toggleBody(this)">Heavy</button><button class="body-btn" onclick="toggleBody(this)">Light</button><button class="body-btn" onclick="toggleBody(this)">Buzzing</button></div></div>
   <div class="scale-row"><div class="scale-label">Internal Weather<span>Overall atmosphere</span></div>
     <div class="weather-row"><button class="weather-btn" onclick="selectWeather('sunny',this)">☀️<span>Sunny</span></button><button class="weather-btn" onclick="selectWeather('partly',this)">⛅<span>Partly</span></button><button class="weather-btn" onclick="selectWeather('cloudy',this)">☁️<span>Cloudy</span></button><button class="weather-btn" onclick="selectWeather('foggy',this)">🌫️<span>Foggy</span></button><button class="weather-btn" onclick="selectWeather('stormy',this)">⛈️<span>Stormy</span></button></div></div>
-  <div class="form-group"><label>Anything else? (optional)</label><textarea id="checkin-note" placeholder="Only if you want to..." rows="2"></textarea></div>
+  <div class="form-group"><label>Anything else about how your body or mind feels right now? (optional)</label><textarea id="checkin-note" placeholder="Example: I slept badly, I had a hard conversation at work, I'm feeling grateful today..." rows="2"></textarea></div>
   <div class="toggle-row"><label>Share this check-in with your partner</label><div class="toggle on" id="share-toggle" onclick="toggleShare()"></div></div>
   <button class="btn btn-primary mt-16" onclick="submitCheckIn()">Save Check-In</button>
 </div>
@@ -232,6 +232,28 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
 
 </div>
 
+<!-- THERAPIST DASHBOARD -->
+<div class="screen" id="screen-therapist">
+<div class="card">
+  <div class="card-title">Your Couples</div>
+  <div class="card-subtitle">Select a couple to assign an exercise.</div>
+  <div id="therapist-couples-list"><div class="empty-state"><div class="icon">👥</div><p>Loading your couples...</p></div></div>
+</div>
+<div id="therapist-assign-panel" style="display:none;">
+  <div class="card">
+    <div class="card-title" id="assign-couple-name">Assign Exercise</div>
+    <div class="form-group"><label>Pick an exercise to assign</label>
+      <select id="assign-exercise-select"><option value="">— Choose an exercise —</option></select>
+    </div>
+    <div id="assign-exercise-preview" style="display:none;" class="card" style="background:var(--green-light);margin-bottom:16px;"></div>
+    <div class="form-group"><label>Or write a custom exercise title</label><input type="text" id="assign-custom-title" placeholder="e.g., Practice the 3-sentence recap this week"></div>
+    <div class="form-group"><label>Instructions or description (optional)</label><textarea id="assign-custom-desc" placeholder="Any specific notes for this couple..." rows="3"></textarea></div>
+    <button class="btn btn-primary" onclick="submitAssignment()">Assign & Email Both Partners</button>
+    <button class="btn btn-outline mt-16" onclick="cancelAssignment()">Cancel</button>
+  </div>
+</div>
+</div>
+
 <!-- NAV -->
 <div class="nav" id="main-nav" style="display:none">
   <button class="nav-item active" onclick="switchTab('checkin',this)"><div class="nav-icon">🫀</div>Check-In</button>
@@ -241,6 +263,7 @@ label{display:block;font-size:13px;font-weight:500;color:var(--text-light);margi
   <button class="nav-item" onclick="switchTab('library',this)"><div class="nav-icon">📖</div>Learn</button>
 </div>
 
+<div id="settings-panel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:150;padding:20px;max-width:480px;margin:0 auto;overflow-y:auto;"></div>
 <div class="toast" id="toast"></div>
 <script src="app.js"></script>
 <script src="app2.js"></script>

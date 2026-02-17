@@ -65,8 +65,58 @@ function showExercise(id){
 }
 
 function resetHomeworkView(){
-  document.getElementById('homework-list').innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>No homework yet</h3><p>Your therapist will assign exercises after sessions.</p></div>';
+  loadAssignedHomework();
   loadExercises();
+}
+
+async function loadAssignedHomework(){
+  if(!currentUser||!currentUser.coupleCode){
+    document.getElementById('homework-list').innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>No homework yet</h3><p>Your therapist will assign exercises after your sessions.</p></div>';
+    return;
+  }
+  const r=await api({action:'getHomework',coupleCode:currentUser.coupleCode});
+  const list=document.getElementById('homework-list');
+  if(r.homework&&r.homework.length>0){
+    const isA=currentUser.userId<=currentUser.partnerId;
+    list.innerHTML=r.homework.map(hw=>{
+      const done=isA?hw.partnerADone==='yes':hw.partnerBDone==='yes';
+      const partnerDone=isA?hw.partnerBDone==='yes':hw.partnerADone==='yes';
+      return '<div class="hw-card" onclick="showAssignedExercise(\''+hw.id+'\',\''+encodeURIComponent(hw.title)+'\',\''+encodeURIComponent(hw.description||'')+'\','+(done?'true':'false')+')">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+        +'<span class="category-tag">From therapist</span>'
+        +'<span class="topic-status '+(done?'status-ready':'status-pending')+'">'+(done?'Done ✓':'To do')+'</span></div>'
+        +'<div class="card-title" style="margin-top:6px;">'+hw.title+'</div>'
+        +'<p class="text-sm text-light">'+(hw.description?hw.description.substring(0,80)+'...':'Open to see instructions')+'</p>'
+        +'<p class="text-sm text-light" style="margin-top:4px;">Partner: '+(partnerDone?'Done ✓':'Not yet')+'</p></div>';
+    }).join('');
+  } else {
+    list.innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>No homework yet</h3><p>Your therapist will assign exercises after your sessions.</p></div>';
+  }
+}
+
+function showAssignedExercise(hwId,titleEnc,descEnc,done){
+  const title=decodeURIComponent(titleEnc);
+  const desc=decodeURIComponent(descEnc);
+  document.getElementById('homework-list').innerHTML=
+    '<div class="card"><button class="article-back" onclick="resetHomeworkView()">← Back</button>'
+    +'<div class="card-title">'+title+'</div>'
+    +'<span class="category-tag">From therapist</span>'
+    +'<div style="background:var(--green-light);border-radius:var(--radius-sm);padding:16px;margin-top:16px;">'
+    +'<p class="text-sm" style="white-space:pre-line;color:var(--green-dark);">'+desc+'</p></div>'
+    +'<div class="form-group mt-16"><label>Your response or reflection (optional)</label>'
+    +'<textarea id="hw-response" placeholder="Write here..." rows="4"></textarea></div>'
+    +(done?'<p class="text-sm" style="color:var(--green);font-weight:500;">You already completed this ✓</p>'
+    :'<button class="btn btn-primary" onclick="markHomeworkDone(\''+hwId+'\')">Mark Complete ✓</button>')
+    +'</div>';
+  document.getElementById('exercise-list').innerHTML='';
+}
+
+async function markHomeworkDone(hwId){
+  const isA=currentUser.userId<=currentUser.partnerId;
+  const resp=document.getElementById('hw-response')?document.getElementById('hw-response').value:'';
+  await api({action:'completeHomework',homeworkId:hwId,partner:isA?'A':'B',response:resp});
+  showToast('Homework completed ✓');
+  resetHomeworkView();
 }
 
 // LIBRARY
@@ -98,4 +148,77 @@ function closeArticle(){document.getElementById('article-view').classList.remove
 async function shareArticleWithPartner(id){
   await api({action:'shareArticle',userId:currentUser.userId,articleId:id,personalNote:'I thought this might help us.'});
   showToast('Shared — your partner got an email 💚');
+}
+
+// ============================================================
+// THERAPIST DASHBOARD
+// ============================================================
+
+let therapistCouples = [];
+let selectedCouple = null;
+
+function enterTherapist(){
+  document.getElementById('main-header').style.display='flex';
+  document.getElementById('main-nav').style.display='none';
+  const h=new Date().getHours();
+  document.getElementById('header-greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+currentUser.name;
+  document.getElementById('user-badge').textContent=currentUser.name?currentUser.name[0].toUpperCase():'?';
+  showScreen('screen-therapist');
+  loadTherapistCouples();
+}
+
+async function loadTherapistCouples(){
+  const r=await api({action:'getTherapistCouples',therapistId:currentUser.userId});
+  const list=document.getElementById('therapist-couples-list');
+  if(r.couples&&r.couples.length>0){
+    therapistCouples=r.couples;
+    list.innerHTML=r.couples.map((c,idx)=>{
+      const names=c.partners.map(p=>p.name).join(' & ');
+      const types=c.partners.map(p=>p.neurotype||'?').join(' / ');
+      return '<div class="hw-card" onclick="selectCoupleForAssignment('+idx+')"><div class="card-title">'+names+'</div><p class="text-sm text-light">'+types+'</p></div>';
+    }).join('');
+  } else {
+    list.innerHTML='<div class="empty-state"><div class="icon">👥</div><h3>No couples yet</h3><p>Use the therapist setup form to create your first couple.</p></div>';
+  }
+}
+
+function selectCoupleForAssignment(idx){
+  selectedCouple=therapistCouples[idx];
+  const names=selectedCouple.partners.map(p=>p.name).join(' & ');
+  document.getElementById('assign-couple-name').textContent='Assign Exercise to '+names;
+  const sel=document.getElementById('assign-exercise-select');
+  sel.innerHTML='<option value="">— Choose from exercise library —</option>'+EXERCISES.map(ex=>'<option value="'+ex.id+'">'+ex.title+' ('+ex.timeMinutes+' min)</option>').join('');
+  sel.onchange=function(){
+    const ex=EXERCISES.find(e=>e.id===sel.value);
+    if(ex){
+      document.getElementById('assign-custom-title').value=ex.title;
+      document.getElementById('assign-custom-desc').value=ex.description+'\n\n'+ex.instructions;
+    }
+  };
+  document.getElementById('assign-custom-title').value='';
+  document.getElementById('assign-custom-desc').value='';
+  document.getElementById('therapist-assign-panel').style.display='block';
+}
+
+function cancelAssignment(){
+  document.getElementById('therapist-assign-panel').style.display='none';
+  selectedCouple=null;
+}
+
+async function submitAssignment(){
+  if(!selectedCouple){showToast('Select a couple first');return;}
+  const title=document.getElementById('assign-custom-title').value.trim();
+  if(!title){showToast('Enter a title for the exercise');return;}
+  const desc=document.getElementById('assign-custom-desc').value.trim();
+  const exId=document.getElementById('assign-exercise-select').value;
+  const r=await api({action:'assignHomework',coupleCode:selectedCouple.coupleCode,therapistId:currentUser.userId,exerciseId:exId,title:title,description:desc});
+  if(r.success){
+    showToast('Exercise assigned — both partners got an email ✓');
+    document.getElementById('therapist-assign-panel').style.display='none';
+    document.getElementById('assign-custom-title').value='';
+    document.getElementById('assign-custom-desc').value='';
+    selectedCouple=null;
+  } else {
+    showToast('Something went wrong. Try again.');
+  }
 }
